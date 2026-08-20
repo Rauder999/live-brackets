@@ -15,3 +15,7 @@ bot/matches.json
 bot/state.json
 bot/*.bak*
 bot/*.playr-*
+
+.wrangler/
+worker/.wrangler/
+dist/
