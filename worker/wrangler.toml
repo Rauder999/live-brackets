@@ -1,0 +1,18 @@
+name = "livebrackets-api"
+main = "src/index.js"
+compatibility_date = "2025-05-01"
+
+# Accounts, invites, archives, active-session index. The binding keeps the
+# OPERATOR_KV name the code expects; the namespace itself is LiveBrackets-only.
+kv_namespaces = [
+  { binding = "OPERATOR_KV", id = "c8777f011afc4cb1b38244c91f49c53f" }
+]
+
+# Durable Object that holds each live session's authoritative state.
+[[durable_objects.bindings]]
+name = "SESSION_ROOM"
+class_name = "SessionRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SessionRoom"]

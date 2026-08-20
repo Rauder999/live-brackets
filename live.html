@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LiveBrackets - Live</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Terminal Violet tokens ───
+       violet = brand · green = advance · orange = drop to LB
+       red = LIVE · gold = champion · dimmed = eliminated */
+    :root {
+      --cb-bg:      #08090c;
+      --cb-panel:   #0d0f14;
+      --cb-panel2:  #12151d;
+      --cb-border:  #1e222d;
+      --cb-border2: #2b3142;
+      --cb-text:    #e6e9f2;
+      --cb-muted:   #7f8698;
+      --cb-silver:  #aab1c5;
+      --cb-purple:  #7c5cff;
+      --cb-purple2: #a48fff;
+      --cb-green:   #28d17c;
+      --cb-red:     #ff4d5e;
+      --cb-orange:  #ff8a3d;
+      --cb-gold:    #e8b64a;
+      --cb-cyan:    #38e1e8;
+      --fd: 'Space Grotesk', sans-serif;
+      --ft: 'Inter', sans-serif;
+      --fm: 'IBM Plex Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--cb-bg);
+      color: var(--cb-text);
+      font-family: var(--ft);
+      font-size: 14px;
+      min-height: 100vh;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.016) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+    ::selection { background: rgba(124,92,255,0.35); }
+    /* ─── Header ─── */
+    .cb-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 26px 16px 18px;
+      border-bottom: 1px solid var(--cb-border);
+      position: relative;
+    }
+    .cb-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 160px;
+      background: radial-gradient(ellipse at center, rgba(124,92,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cb-title {
+      font-family: var(--fd);
+      font-weight: 700;
+      font-size: 26px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--cb-text);
+    }
+    .cb-subtitle {
+      font-family: var(--fm);
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: var(--cb-purple2);
+      margin-top: 5px;
+    }
+    .cb-tournament-name {
+      font-family: var(--fd);
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cb-gold);
+      margin-top: 8px;
+    }
+    .live-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,77,94,0.08);
+      border: 1px solid rgba(255,77,94,0.55);
+      color: var(--cb-red);
+      font-family: var(--fm);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      padding: 3px 12px;
+      margin-top: 10px;
+      clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cb-red);
+      animation: livePulse 1.6s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--cb-red); }
+      50%       { opacity: 0.3; box-shadow: none; }
+    }
+    .live-badge.archived {
+      background: rgba(232,182,74,0.08);
+      border-color: rgba(232,182,74,0.55);
+      color: var(--cb-gold);
+    }
+    .live-badge.archived .live-dot { display: none; }
+    .gallery-card-champion {
+      font-family: var(--fm);
+      font-size: 11px;
+      color: var(--cb-gold);
+      margin-top: 6px;
+      letter-spacing: 0.06em;
+    }
+    /* ─── Status bar ─── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--cb-border);
+      font-family: var(--fm);
+      font-size: 10.5px;
+      color: var(--cb-muted);
+      letter-spacing: 0.05em;
+    }
+    .back-btn, .refresh-btn {
+      background: var(--cb-panel);
+      border: 1px solid var(--cb-border2);
+      color: var(--cb-silver);
+      font-family: var(--fd);
+      font-weight: 600;
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: border-color 150ms, color 150ms;
+    }
+    .back-btn:hover, .refresh-btn:hover { border-color: var(--cb-purple); color: var(--cb-text); }
+
+    /* ─── Gallery ─── */
+    #gallery-view { display: none; }
+    .gallery-header {
+      padding: 24px 20px 12px;
+      font-family: var(--fd);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cb-purple2);
+      border-bottom: 1px solid var(--cb-border);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+    .gallery-card {
+      background: var(--cb-panel);
+      border: 1px solid var(--cb-border);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: border-color 150ms, background 150ms, transform 150ms, box-shadow 150ms;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .gallery-card:hover {
+      border-color: var(--cb-purple);
+      background: rgba(124,92,255,0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+    }
+    .gallery-card-name {
+      font-family: var(--fd);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cb-text);
+    }
+    .gallery-card-meta {
+      font-family: var(--fm);
+      font-size: 10px;
+      color: var(--cb-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .gallery-card-updated {
+      font-family: var(--fm);
+      font-size: 10.5px;
+      color: var(--cb-cyan);
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+    .gallery-card-host {
+      font-size: 11px;
+      color: var(--cb-silver);
+      letter-spacing: 0.03em;
+    }
+    .gallery-card-arrow {
+      align-self: flex-end;
+      font-size: 18px;
+      color: var(--cb-purple2);
+      margin-top: 4px;
+      transition: transform 150ms;
+    }
+    .gallery-card:hover .gallery-card-arrow { transform: translateX(4px); }
+    .gallery-empty {
+      padding: 48px 20px;
+      text-align: center;
+      color: var(--cb-muted);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+    /* Manual code entry */
+    .gallery-fallback {
+      padding: 20px;
+      border-top: 1px solid var(--cb-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .gallery-fallback-label {
+      font-size: 11.5px;
+      color: var(--cb-muted);
+      letter-spacing: 0.03em;
+    }
+    .code-input {
+      background: var(--cb-panel);
+      border: 1px solid var(--cb-border2);
+      color: var(--cb-cyan);
+      font-family: var(--fm);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      padding: 6px 12px;
+      text-transform: uppercase;
+      width: 130px;
+      outline: none;
+      transition: border-color 150ms, box-shadow 150ms;
+    }
+    .code-input:focus { border-color: var(--cb-purple); box-shadow: 0 0 0 3px rgba(124,92,255,0.14); }
+    .code-input::placeholder { color: var(--cb-muted); }
+    .code-go-btn {
+      background: var(--cb-purple);
+      border: none;
+      color: #0b0716;
+      font-family: var(--fd);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 18px;
+      cursor: pointer;
+      transition: background 150ms, box-shadow 150ms;
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    }
+    .code-go-btn:hover { background: var(--cb-purple2); box-shadow: 0 0 20px rgba(124,92,255,0.35); }
+
+    /* ─── Bracket view ─── */
+    #bracket-view { display: none; }
+    .waiting-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 40vh;
+      gap: 16px;
+      color: var(--cb-muted);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+    .waiting-pulse {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--cb-purple);
+      animation: livePulse 1.6s ease-in-out infinite;
+    }
+    .bracket-container {
+      overflow-x: auto;
+      padding: 20px 16px 40px;
+      position: relative;
+    }
+    .bracket-inner {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0;
+      min-width: max-content;
+    }
+    .de-bracket-wrapper {
+      display: grid;
+      /* GF column hugs content so the Grand Final sits right after the brackets */
+      grid-template-columns: max-content max-content;
+      grid-template-rows: auto auto auto;
+      gap: 0;
+      min-width: max-content;
+    }
+    .de-row { display: flex; flex-direction: column; padding: 12px 0; }
+    .de-row-label {
+      font-family: var(--fm); font-weight: 500; font-size: 10px; letter-spacing: 0.3em;
+      text-transform: uppercase; padding: 0 16px 8px;
+      border-bottom: 1px solid rgba(124,92,255,0.2); margin-bottom: 8px;
+    }
+    .wb-row-label { color: var(--cb-purple2); }
+    .lb-row-label { color: var(--cb-orange); border-bottom-color: rgba(255,138,61,0.2); }
+    .de-row-phases { display: flex; flex-direction: row; align-items: center; padding: 12px 0; }
+    .de-zone-divider { grid-column: 1 / 3; height: 1px; background: linear-gradient(to right, rgba(124,92,255,0.25), rgba(255,138,61,0.25)); margin: 0; }
+    .de-gf-column {
+      grid-column: 2; grid-row: 1 / 4;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 16px 16px 16px 8px;
+      border-left: 1px solid rgba(232,182,74,0.2);
+      min-width: 200px;
+    }
+    .bracket-phase { display: flex; flex-direction: column; align-items: center; padding: 0 8px; }
+    .phase-label {
+      font-family: var(--fm); font-weight: 500; font-size: 9.5px; letter-spacing: 0.26em;
+      text-transform: uppercase; color: var(--cb-muted);
+      padding-bottom: 8px; text-align: center;
+    }
+    .lb-phase-label { color: var(--cb-orange); }
+    .gf-phase-label { color: var(--cb-gold); }
+    .pods-column { display: flex; flex-direction: column; gap: 8px; }
+    .connector-spacer { width: 20px; flex-shrink: 0; }
+    /* ─── Pods ─── */
+    .match-pod {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.028), transparent 46%),
+        var(--cb-panel);
+      border: 1px solid var(--cb-border);
+      min-width: 184px; max-width: 244px;
+      display: flex; flex-direction: column;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.045), 0 4px 16px rgba(0,0,0,0.55);
+    }
+    .gf-pod { border-color: rgba(232,182,74,0.55); min-width: 200px; box-shadow: inset 0 1px 0 rgba(232,182,74,0.12), 0 0 22px rgba(232,182,74,0.12), 0 4px 16px rgba(0,0,0,0.55); }
+    .lb-pod { border-color: var(--cb-border); }
+    .pod-header {
+      font-family: var(--fm); font-weight: 500; font-size: 9px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--cb-silver);
+      padding: 6px 12px; border-bottom: 1px solid var(--cb-border);
+      background: linear-gradient(180deg, #171b26, var(--cb-panel2));
+      display: flex; align-items: center; gap: 6px;
+    }
+    .gf-header { color: var(--cb-gold); border-bottom-color: rgba(232,182,74,0.3); background: rgba(232,182,74,0.05); }
+    .lb-header { color: var(--cb-orange); background: linear-gradient(180deg, #171b26, var(--cb-panel2)); box-shadow: inset 2px 0 0 var(--cb-orange); }
+    /* Map plate */
+    .map-plate {
+      display: flex; align-items: center; gap: 6px;
+      padding: 3px 10px; border-bottom: 1px solid var(--cb-border);
+      background: rgba(124,92,255,0.045);
+    }
+    .map-plate::before { content: ""; width: 3px; height: 3px; border-radius: 50%; background: var(--cb-purple); opacity: 0.7; flex-shrink: 0; }
+    .map-name { font-family: var(--fm); font-size: 9px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cb-purple2); }
+    /* ─── Team rows — semantic states ───
+       LIVE (red pod glow) / ADVANCE (green) / DROP->LB (orange)
+       ELIMINATED (dim + strikethrough) / CHAMPION (gold)          */
+    .team-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.045);
+      border-left: 3px solid transparent;
+      font-size: 13px; transition: background 120ms;
+    }
+    .team-row:last-child { border-bottom: none; }
+    .team-row.champion { background: linear-gradient(90deg, rgba(232,182,74,0.12), rgba(232,182,74,0.03) 55%, transparent); border-left-color: var(--cb-gold); }
+    .team-row.advancing { background: linear-gradient(90deg, rgba(40,209,124,0.10), rgba(40,209,124,0.03) 55%, transparent); border-left-color: var(--cb-green); }
+    .team-row.dropping { background: linear-gradient(90deg, rgba(255,138,61,0.09), rgba(255,138,61,0.03) 55%, transparent); border-left-color: var(--cb-orange); }
+    .team-row.eliminated { opacity: 0.38; }
+    .team-row.eliminated .team-name { text-decoration: line-through; text-decoration-color: var(--cb-muted); text-decoration-thickness: 1px; }
+    .team-seed-group { display: flex; align-items: center; gap: 3px; min-width: 30px; }
+    .team-seed { font-family: var(--fm); font-size: 9.5px; color: var(--cb-muted); opacity: 0.75; letter-spacing: 0.02em; }
+    .team-emoji { font-size: 12px; min-width: 16px; text-align: center; color: var(--cb-gold); }
+    .team-name {
+      flex: 1; font-family: var(--fd); font-weight: 600; font-size: 13px; letter-spacing: 0.02em;
+      /* Long names wrap instead of getting ellipsised: connectors measure the
+         DOM after layout, so taller rows are safe. */
+      white-space: normal; overflow-wrap: anywhere; line-height: 1.25;
+      position: relative;
+    }
+    .team-row.champion .team-name { color: var(--cb-gold); font-weight: 700; }
+    .team-row.advancing .team-name { color: #f4f7ff; font-weight: 700; }
+    .team-row.dropping .team-name { color: var(--cb-orange); }
+    .team-name.empty { color: var(--cb-muted); font-style: italic; font-weight: 400; font-family: var(--ft); }
+    .team-name.has-roster {
+      border-bottom: 1px dashed rgba(164,143,255,0.45);
+      cursor: default;
+      overflow: visible;
+    }
+    .roster-tooltip {
+      display: none;
+      position: absolute;
+      left: 0; top: calc(100% + 4px);
+      background: var(--cb-panel2);
+      border: 1px solid rgba(124,92,255,0.6);
+      padding: 8px 12px;
+      z-index: 1000;
+      min-width: 160px;
+      max-width: 260px;
+      flex-direction: column;
+      gap: 3px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+      pointer-events: none;
+    }
+    .team-name.has-roster:hover .roster-tooltip { display: flex; }
+    .roster-tooltip-title { font-family: var(--fm); font-weight: 600; font-size: 10px; letter-spacing: 0.12em; color: var(--cb-purple2); text-transform: uppercase; margin-bottom: 4px; border-bottom: 1px solid rgba(124,92,255,0.3); padding-bottom: 4px; }
+    .roster-tooltip-player { font-family: var(--ft); font-size: 12px; color: var(--cb-text); letter-spacing: 0.02em; font-weight: 500; }
+    .placement-badge {
+      font-family: var(--fm); font-size: 9px; color: var(--cb-muted);
+      letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0;
+      padding: 2px 6px; border: 1px solid var(--cb-border2); background: rgba(255,255,255,0.02);
+    }
+    .team-row.advancing .placement-badge { color: var(--cb-green); border-color: rgba(40,209,124,0.4); background: rgba(40,209,124,0.08); }
+    .team-row.dropping .placement-badge { color: var(--cb-orange); border-color: rgba(255,138,61,0.4); background: rgba(255,138,61,0.08); }
+    .team-row.eliminated .placement-badge { border-color: var(--cb-border); }
+    .champion-badge { color: var(--cb-gold) !important; border-color: rgba(232,182,74,0.4) !important; background: rgba(232,182,74,0.08) !important; }
+    .path-badge { font-family: var(--fm); font-size: 8.5px; font-weight: 500; letter-spacing: 0.1em; flex-shrink: 0; padding: 1px 4px; border: 1px solid; }
+    .wb-badge { background: rgba(124,92,255,0.08); border-color: rgba(124,92,255,0.4); color: var(--cb-purple2); }
+    .lb-badge { background: rgba(255,138,61,0.08); border-color: rgba(255,138,61,0.4); color: var(--cb-orange); }
+    /* ─── Streaming treatment ─── */
+    .match-pod.on-stream {
+      box-shadow: 0 0 0 1px rgba(56,225,232,0.45);
+    }
+    .match-pod.on-stream .pod-header {
+      background: rgba(56,225,232,0.07);
+      color: var(--cb-cyan);
+    }
+    .match-pod.live-now {
+      border-color: rgba(255,77,94,0.6);
+      box-shadow: 0 0 0 1px rgba(255,77,94,0.3), 0 0 22px rgba(255,77,94,0.12);
+      animation: livePodPulse 2.4s ease-in-out infinite;
+    }
+    .match-pod.live-now .pod-header {
+      background: rgba(255,77,94,0.10);
+      color: var(--cb-red);
+    }
+    @keyframes livePodPulse {
+      50% { box-shadow: 0 0 0 1px rgba(255,77,94,0.5), 0 0 30px rgba(255,77,94,0.22); }
+    }
+    .stream-live-badge {
+      font-family: var(--fm); font-size: 9px; font-weight: 600; letter-spacing: 0.12em;
+      color: var(--cb-red);
+    }
+    /* ─── Compact mode ─── */
+    body.compact .team-row { padding: 3px 10px; min-height: 0; font-size: 11px; }
+    body.compact .team-name { font-size: 11px; }
+    body.compact .team-emoji { font-size: 10px; }
+    body.compact .pods-column { gap: 4px; }
+    body.compact .pod-header { padding: 3px 10px; font-size: 8px; }
+    body.compact .map-plate { padding: 2px 10px; }
+    body.compact .match-pod { min-width: 160px; }
+    /* Compact toggle button */
+    .compact-btn {
+      background: var(--cb-panel);
+      border: 1px solid var(--cb-border2);
+      color: var(--cb-silver);
+      font-family: var(--fd);
+      font-weight: 600;
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: border-color 150ms, color 150ms;
+    }
+    .compact-btn:hover { border-color: var(--cb-purple); color: var(--cb-text); }
+    .compact-btn.active { border-color: var(--cb-purple); color: var(--cb-purple2); background: rgba(124,92,255,0.08); }
+    /* ─── Reduced motion ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .live-dot, .waiting-pulse, .match-pod.live-now { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ─── -->
+  <div class="cb-header">
+    <div class="cb-title">LIVEBRACKETS</div>
+    <div class="cb-subtitle" id="headerSubtitle">LIVE TOURNAMENTS</div>
+    <div class="cb-tournament-name" id="tournamentNameEl" style="display:none"></div>
+    <div class="live-badge" id="liveBadge"><span class="live-dot"></span>LIVE</div>
+  </div>
+
+  <!-- ─── Status bar (bracket view only) ─── -->
+  <div class="status-bar" id="statusBar" style="display:none">
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="back-btn" onclick="showGallery()">Back to Gallery</button>
+      <span id="statusText" style="font-size:11px;color:var(--cb-muted)"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="compact-btn" id="compactBtn" onclick="toggleCompact()">Compact</button>
+      <button class="refresh-btn" onclick="currentArchive ? fetchArchive() : fetchSession()">Refresh</button>
+    </div>
+  </div>
+
+  <!-- ─── Gallery view ─── -->
+  <div id="gallery-view">
+    <div class="gallery-header">Live Tournaments</div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-header" style="margin-top:36px">Past Tournaments</div>
+    <div class="gallery-grid" id="archiveGrid"></div>
+    <div class="gallery-fallback">
+      <span class="gallery-fallback-label">Have a code? Enter it:</span>
+      <input class="code-input" id="codeInput" placeholder="CB-XXXX" maxlength="7"
+        onkeydown="if(event.key==='Enter') goToCode()" />
+      <button class="code-go-btn" onclick="goToCode()">Go</button>
+    </div>
+  </div>
+
+  <!-- ─── Bracket view ─── -->
+  <div id="bracket-view">
+    <div id="main"></div>
+  </div>
+
+  <script>
+    const WORKER_URL = "https://livebrackets-api.codebreakerstf.workers.dev";
+    const POLL_INTERVAL = 5000;
+    const GALLERY_POLL = 15000;
+    const PLACEMENT_LABELS = { 1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th", 6: "6th", 7: "7th", 8: "8th" };
+
+    let currentSession = null;
+    let currentArchive = null;
+    let lastUpdated = null;
+    let pollTimer = null;
+    let galleryTimer = null;
+    let _compactActive = false;
+    let ws = null;
+    let wsReconnect = null;
+    const WS_URL = WORKER_URL.replace(/^http/, "ws");
+
+    // ─── Routing ─────────────────────────────────────────────────────────────
+    function getSessionParam() {
+      return new URLSearchParams(window.location.search).get("session");
+    }
+    function getArchiveParam() {
+      return new URLSearchParams(window.location.search).get("archive");
+    }
+
+    function init() {
+      const arc = getArchiveParam();
+      const code = getSessionParam();
+      if (arc) {
+        currentArchive = arc.toUpperCase();
+        showBracketView();
+        fetchArchive();
+      } else if (code) {
+        currentSession = code.toUpperCase();
+        showBracketView();
+        fetchSession();
+        pollTimer = setInterval(fetchSession, POLL_INTERVAL);
+      } else {
+        showGallery();
+        loadGallery();
+        loadArchives();
+        galleryTimer = setInterval(loadGallery, GALLERY_POLL);
+      }
+    }
+
+    function showGallery() {
+      document.getElementById("gallery-view").style.display = "block";
+      document.getElementById("bracket-view").style.display = "none";
+      document.getElementById("statusBar").style.display = "none";
+      document.getElementById("liveBadge").style.display = "none";
+      document.getElementById("tournamentNameEl").style.display = "none";
+      document.getElementById("headerSubtitle").textContent = "LIVE TOURNAMENTS";
+      const badge = document.getElementById("liveBadge");
+      badge.classList.remove("archived");
+      badge.innerHTML = `<span class="live-dot"></span>LIVE`;
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      closeWs();
+      currentSession = null;
+      currentArchive = null;
+      loadArchives();
+      // Reset compact state
+      if (document.body.classList.contains("compact")) {
+        document.body.classList.remove("compact");
+        const cb = document.getElementById("compactBtn");
+        if (cb) { cb.classList.remove("active"); cb.textContent = "Compact"; }
+      }
+      // Update URL
+      history.pushState({}, "", window.location.pathname);
+    }
+
+    function showBracketView() {
+      document.getElementById("gallery-view").style.display = "none";
+      document.getElementById("bracket-view").style.display = "block";
+      document.getElementById("statusBar").style.display = "flex";
+      if (!currentArchive) connectWs(); // archives are frozen — no live socket
+    }
+
+    function openArchive(id) {
+      if (galleryTimer) { clearInterval(galleryTimer); galleryTimer = null; }
+      currentArchive = id;
+      history.pushState({}, "", `?archive=${id}`);
+      showBracketView();
+      fetchArchive();
+    }
+
+    function goToCode() {
+      const code = document.getElementById("codeInput").value.trim().toUpperCase();
+      if (!code) return;
+      currentSession = code;
+      if (galleryTimer) { clearInterval(galleryTimer); galleryTimer = null; }
+      history.pushState({}, "", `?session=${code}`);
+      showBracketView();
+      fetchSession();
+      pollTimer = setInterval(fetchSession, POLL_INTERVAL);
+    }
+
+    function openSession(code) {
+      if (galleryTimer) { clearInterval(galleryTimer); galleryTimer = null; }
+      currentSession = code;
+      history.pushState({}, "", `?session=${code}`);
+      showBracketView();
+      fetchSession();
+      pollTimer = setInterval(fetchSession, POLL_INTERVAL);
+    }
+
+    // ─── Gallery ─────────────────────────────────────────────────────────────
+    async function loadGallery() {
+      try {
+        const res = await fetch(`${WORKER_URL}/sessions/active`);
+        const json = await res.json();
+        const grid = document.getElementById("galleryGrid");
+        if (!json.ok || !json.sessions || json.sessions.length === 0) {
+          grid.innerHTML = `<div class="gallery-empty" style="grid-column:1/-1">No tournaments are live right now.</div>`;
+          return;
+        }
+        grid.innerHTML = json.sessions.map(s => {
+          const ago = timeAgo(s.updatedAt);
+          const mode = s.mode === "double" ? "Double Elimination" : "Single Elimination";
+          const size = s.size ? `${s.size} teams` : "";
+          const meta = [mode, size].filter(Boolean).join(" · ");
+          return `<div class="gallery-card" onclick="openSession('${s.code}')">
+            <div class="gallery-card-name">${escHtml(s.name || s.code)}</div>
+            <div class="gallery-card-meta">${escHtml(meta)}</div>
+            ${s.host ? `<div class="gallery-card-host">Host: ${escHtml(s.host)}</div>` : ""}
+            <div class="gallery-card-updated">Updated ${ago}</div>
+            <div class="gallery-card-arrow">&#8594;</div>
+          </div>`;
+        }).join("");
+      } catch {
+        document.getElementById("galleryGrid").innerHTML =
+          `<div class="gallery-empty" style="grid-column:1/-1">Could not reach server. Retrying...</div>`;
+      }
+    }
+
+    // ─── Archive gallery (finished tournaments, frozen forever) ──────────────
+    async function loadArchives() {
+      const grid = document.getElementById("archiveGrid");
+      if (!grid) return;
+      try {
+        const res = await fetch(`${WORKER_URL}/archives`);
+        const json = await res.json();
+        if (!json.ok || !json.archives || json.archives.length === 0) {
+          grid.innerHTML = `<div class="gallery-empty" style="grid-column:1/-1">No archived tournaments yet.</div>`;
+          return;
+        }
+        grid.innerHTML = json.archives.map(a => {
+          const mode = a.mode === "double" ? "Double Elimination" : "Single Elimination";
+          const size = a.size ? `${a.size} teams` : "";
+          const meta = [mode, size].filter(Boolean).join(" · ");
+          const when = a.finishedAt ? new Date(a.finishedAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+          return `<div class="gallery-card" onclick="openArchive('${escHtml(a.id)}')">
+            <div class="gallery-card-name">${escHtml(a.name || a.id)}</div>
+            <div class="gallery-card-meta">${escHtml(meta)}</div>
+            ${a.champion ? `<div class="gallery-card-champion">&#127942; ${escHtml(a.champion)}</div>` : ""}
+            ${a.host ? `<div class="gallery-card-host">Host: ${escHtml(a.host)}</div>` : ""}
+            ${when ? `<div class="gallery-card-updated">Finished ${when}</div>` : ""}
+            <div class="gallery-card-arrow">&#8594;</div>
+          </div>`;
+        }).join("");
+      } catch {
+        grid.innerHTML = `<div class="gallery-empty" style="grid-column:1/-1">Could not load the archive.</div>`;
+      }
+    }
+
+    async function fetchArchive() {
+      if (!currentArchive) return;
+      try {
+        const res = await fetch(`${WORKER_URL}/archive/${currentArchive}`);
+        if (!res.ok) { showWaiting("Archive not found."); return; }
+        const json = await res.json();
+        if (!json.state) { showWaiting("Archive not found."); return; }
+        applyState(json.state);
+        const when = json.finishedAt ? new Date(json.finishedAt).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }) : null;
+        lastUpdated = null; // stop the "Updated Xs ago" ticker — this bracket is frozen
+        document.getElementById("statusText").textContent = when ? `Finished ${when} · read-only archive` : "Read-only archive";
+      } catch {
+        document.getElementById("statusText").textContent = "Could not reach server.";
+      }
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return "recently";
+      const secs = Math.round((Date.now() - ts) / 1000);
+      if (secs < 60) return `${secs}s ago`;
+      if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+      return `${Math.floor(secs / 3600)}h ago`;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    // ─── Bracket fetch ────────────────────────────────────────────────────────
+    // Render a serialized session state (shared by the HTTP fetch and the WS push).
+    // Unchanged states are NOT re-rendered: replacing the bracket's innerHTML
+    // resets the viewer's scroll position, and the poll fires every few
+    // seconds — people could never scroll a big bracket. Real changes keep the
+    // scroll by capturing and restoring it around the re-render.
+    let lastRenderKey = null;
+    function applyState(stateStr) {
+      let data;
+      try { data = JSON.parse(stateStr); } catch { return; }
+      const renderKey = (currentSession || currentArchive || "") + "|" + stateStr;
+      if (renderKey === lastRenderKey) {
+        if (!currentArchive) { lastUpdated = new Date(); updateTimestamp(); }
+        return;
+      }
+      lastRenderKey = renderKey;
+      const { pods, tournamentMode, tournamentSize, tournamentName, finalsBracket } = data;
+      const label = currentSession || currentArchive || "";
+      const nameEl = document.getElementById("tournamentNameEl");
+      if (tournamentName) {
+        nameEl.textContent = tournamentName;
+        nameEl.style.display = "block";
+        document.title = `${tournamentName} - LiveBrackets ${currentArchive ? "Archive" : "Live"}`;
+      } else {
+        nameEl.style.display = "none";
+        document.title = `${label} - LiveBrackets ${currentArchive ? "Archive" : "Live"}`;
+      }
+      document.getElementById("headerSubtitle").textContent = label;
+      const oldContainer = document.querySelector(".bracket-container");
+      const keepX = oldContainer ? oldContainer.scrollLeft : 0;
+      const keepY = window.scrollY;
+      document.getElementById("main").innerHTML =
+        renderBracket(pods, tournamentMode || "single", tournamentSize || 16, { finalsBracket: !!finalsBracket });
+      const newContainer = document.querySelector(".bracket-container");
+      if (newContainer && keepX) newContainer.scrollLeft = keepX;
+      if (keepY) window.scrollTo(window.scrollX, keepY);
+      const badge = document.getElementById("liveBadge");
+      badge.style.display = "inline-flex";
+      if (currentArchive) {
+        badge.classList.add("archived");
+        badge.innerHTML = "ARCHIVED";
+      } else {
+        badge.classList.remove("archived");
+        if (!badge.querySelector(".live-dot")) badge.innerHTML = `<span class="live-dot"></span>LIVE`;
+        lastUpdated = new Date();
+        updateTimestamp();
+      }
+      // Draw connector lines after DOM settles; connectors change layout, so
+      // pin the scroll once more afterwards.
+      requestAnimationFrame(() => {
+        measureConnectors(pods, tournamentMode || "single", tournamentSize || 16, { finalsBracket: !!finalsBracket });
+        const c = document.querySelector(".bracket-container");
+        if (c && keepX) c.scrollLeft = keepX;
+        if (keepY) window.scrollTo(window.scrollX, keepY);
+      });
+    }
+
+    async function fetchSession() {
+      if (!currentSession) return;
+      try {
+        const res = await fetch(`${WORKER_URL}/session/${currentSession}`);
+        if (!res.ok) { showWaiting("Session not found."); return; }
+        const json = await res.json();
+        if (!json.ok || !json.state) { showWaiting("No bracket data yet."); return; }
+        applyState(json.state);
+      } catch {
+        document.getElementById("statusText").textContent = "Could not reach server. Retrying...";
+      }
+    }
+
+    // ─── Read-only live WebSocket (instant spectator updates) ─────────────────
+    function connectWs() {
+      closeWs();
+      if (!currentSession) return;
+      const code = currentSession;
+      // Read-only spectator socket: all player interaction lives in Discord.
+      try { ws = new WebSocket(`${WS_URL}/session/${code}/ws`); } catch { scheduleWsReconnect(); return; }
+      ws.onmessage = (ev) => {
+        let data;
+        try { data = JSON.parse(ev.data); } catch { return; }
+        if (data.t === "state" && typeof data.state === "string") applyState(data.state);
+      };
+      ws.onerror = () => { try { ws.close(); } catch {} };
+      ws.onclose = () => { ws = null; scheduleWsReconnect(); };
+    }
+    function scheduleWsReconnect() {
+      if (wsReconnect) clearTimeout(wsReconnect);
+      wsReconnect = setTimeout(() => { if (currentSession) connectWs(); }, 2000);
+    }
+    function closeWs() {
+      if (wsReconnect) { clearTimeout(wsReconnect); wsReconnect = null; }
+      if (ws) { try { ws.onclose = null; ws.close(); } catch {} ws = null; }
+    }
+
+
+    function showWaiting(msg) {
+      lastRenderKey = null; // main was replaced - next state must re-render
+      document.getElementById("liveBadge").style.display = "none";
+      document.getElementById("main").innerHTML = `
+        <div class="waiting-screen">
+          <span class="waiting-pulse"></span>
+          <span>${msg || "Tournament hasn't started yet. Check back soon."}</span>
+        </div>`;
+      document.getElementById("statusText").textContent = "Waiting for data...";
+    }
+
+    function updateTimestamp() {
+      if (!lastUpdated) return;
+      const secs = Math.round((Date.now() - lastUpdated.getTime()) / 1000);
+      document.getElementById("statusText").textContent =
+        `Updated ${secs === 0 ? "just now" : secs + "s ago"} · auto-refreshes every 5s`;
+    }
+
+    // ─── Phase graph (MUST match bracketEngine.ts exactly) ────────────────────
+    function getPhaseGraph(size, mode) {
+      // 2/4-team mini-brackets are always single-elim (matches engine).
+      if (size === 4) return [
+        { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"gf" },
+        { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+      ];
+      if (size === 2) return [
+        { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+      ];
+      if (mode !== "double") {
+        if (size === 8)  return [
+          { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"final" },
+          { id:"final",label:"CASH-OUT FINAL",bracket:"wb",advanceTo:"gf" },
+          { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+        ];
+        if (size === 16) return [
+          { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"semis" },
+          { id:"semis",label:"SEMIFINALS",bracket:"wb",advanceTo:"final" },
+          { id:"final",label:"CASH-OUT FINAL",bracket:"wb",advanceTo:"gf" },
+          { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+        ];
+        return [
+          { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"quarters" },
+          { id:"quarters",label:"QUARTERFINALS",bracket:"wb",advanceTo:"semis" },
+          { id:"semis",label:"SEMIFINALS",bracket:"wb",advanceTo:"final" },
+          { id:"final",label:"CASH-OUT FINAL",bracket:"wb",advanceTo:"gf" },
+          { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+        ];
+      }
+      if (size === 8) return [
+        { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"wb-final",dropTo:"lb-r1" },
+        { id:"wb-final",label:"WB FINAL",bracket:"wb",advanceTo:"cashout",dropTo:"lb-final" },
+        { id:"lb-r1",label:"LB ROUND 1",bracket:"lb",advanceTo:"lb-final" },
+        { id:"lb-final",label:"LB FINAL",bracket:"lb",advanceTo:"cashout" },
+        { id:"cashout",label:"CASH-OUT FINAL",bracket:"gf",advanceTo:"gf",hasNoLBDrop:true },
+        { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+      ];
+      if (size === 16) return [
+        { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"wb-semis",dropTo:"lb-r1" },
+        { id:"wb-semis",label:"WB SEMIFINALS",bracket:"wb",advanceTo:"wb-final",dropTo:"lb-r2" },
+        { id:"wb-final",label:"WB FINAL",bracket:"wb",advanceTo:"cashout",dropTo:"lb-final" },
+        { id:"lb-r1",label:"LB ROUND 1",bracket:"lb",advanceTo:"lb-r2" },
+        { id:"lb-r2",label:"LB ROUND 2",bracket:"lb",advanceTo:"lb-semi" },
+        { id:"lb-semi",label:"LB SEMIFINAL",bracket:"lb",advanceTo:"lb-final" },
+        { id:"lb-final",label:"LB FINAL",bracket:"lb",advanceTo:"cashout" },
+        { id:"cashout",label:"CASH-OUT FINAL",bracket:"gf",advanceTo:"gf",hasNoLBDrop:true },
+        { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+      ];
+      return [
+        { id:"groups",label:"GROUP STAGE",bracket:"wb",advanceTo:"wb-r2",dropTo:"lb-r1" },
+        { id:"wb-r2",label:"WB QUARTERS",bracket:"wb",advanceTo:"wb-semis",dropTo:"lb-r2" },
+        { id:"wb-semis",label:"WB SEMIFINALS",bracket:"wb",advanceTo:"wb-final",dropTo:"lb-r4" },
+        { id:"wb-final",label:"WB FINAL",bracket:"wb",advanceTo:"cashout",dropTo:"lb-final" },
+        { id:"lb-r1",label:"LB ROUND 1",bracket:"lb",advanceTo:"lb-r2" },
+        { id:"lb-r2",label:"LB ROUND 2",bracket:"lb",advanceTo:"lb-r3" },
+        { id:"lb-r3",label:"LB ROUND 3",bracket:"lb",advanceTo:"lb-r4" },
+        { id:"lb-r4",label:"LB ROUND 4",bracket:"lb",advanceTo:"lb-semi" },
+        { id:"lb-semi",label:"LB SEMIFINAL",bracket:"lb",advanceTo:"lb-final" },
+        { id:"lb-final",label:"LB FINAL",bracket:"lb",advanceTo:"cashout" },
+        { id:"cashout",label:"CASH-OUT FINAL",bracket:"gf",advanceTo:"gf",hasNoLBDrop:true },
+        { id:"gf",label:"GRAND FINAL",bracket:"gf" },
+      ];
+    }
+
+    // Insert the head-to-head finals round before GF when enabled (matches engine).
+    function applyFinalsBracket(graph, opts) {
+      if (!opts || !opts.finalsBracket) return graph;
+      const finalId = graph.find(p => p.id === "cashout") ? "cashout" : "final";
+      const out = [];
+      for (const p of graph) {
+        if (p.id === finalId) out.push({ ...p, advanceTo: "fbracket" });
+        else if (p.id === "gf") {
+          out.push({ id:"fbracket", label:"FINALS", bracket:"gf", advanceTo:"gf" });
+          out.push(p);
+        } else out.push(p);
+      }
+      return out;
+    }
+
+    function groupPodsByPhase(pods, mode, size, opts) {
+      const graph = applyFinalsBracket(getPhaseGraph(size, mode), opts);
+      const labelMap = new Map(graph.map(p => [p.id, p.label]));
+      const map = new Map();
+      for (const p of pods) {
+        if (!map.has(p.phase)) map.set(p.phase, []);
+        map.get(p.phase).push(p);
+      }
+      return graph
+        .filter(ph => map.has(ph.id))
+        .map(ph => ({
+          phase: ph.id,
+          label: labelMap.get(ph.id) || ph.id.toUpperCase(),
+          pods: map.get(ph.id),
+          bracket: map.get(ph.id)[0]?.bracket,
+        }));
+    }
+
+    // ─── Grand-final Bo3 series (mirror of bracketEngine.gfSeries) ────────────
+    // The deciding game gets champion gold; earlier game wins render green.
+    function gfSeriesInfo(pods) {
+      const games = pods.filter(p => p.phase === "gf")
+        .sort((a, b) => (parseInt((a.id.match(/-(\d+)$/) || [])[1] || "0", 10)) - (parseInt((b.id.match(/-(\d+)$/) || [])[1] || "0", 10)));
+      const wins = {};
+      let playedCount = 0, champion = null, decidingId = null, lastWinner = null, lastPlayedId = null;
+      for (const g of games) {
+        const played = g.teams.length >= 2 && g.teams.every(t => t.name && t.placement > 0);
+        if (!played || champion) break;
+        playedCount++;
+        const w = g.teams.find(t => t.placement === 1);
+        if (!w) continue;
+        lastWinner = w.name; lastPlayedId = g.id;
+        wins[w.name] = (wins[w.name] || 0) + 1;
+        if (wins[w.name] >= 2) { champion = w.name; decidingId = g.id; }
+      }
+      const displayChampion = champion || (games.length === 1 && playedCount === 1 ? lastWinner : null);
+      return { displayChampion, decidingId: decidingId || (displayChampion ? lastPlayedId : null) };
+    }
+
+    // ─── Team row renderer ────────────────────────────────────────────────────
+    function renderTeamRow(team, isGF, isDE, isLB, hasNoLBDrop, podSize, gfDeciding) {
+      const placement = team.placement || 0;
+      const advanceCount = podSize / 2;
+      const isChampion = isGF && gfDeciding && placement === 1 && team.name;
+      const isAdvancing = (!isGF && placement >= 1 && placement <= advanceCount)
+        || (isGF && !gfDeciding && placement === 1 && team.name);
+      const isDropping  = isDE && !isLB && !isGF && !hasNoLBDrop && placement > advanceCount && placement <= podSize;
+      const isEliminated = !isGF && (
+        (isLB && placement > advanceCount) ||
+        (!isDE && placement > advanceCount) ||
+        (isDE && hasNoLBDrop && placement > advanceCount)
+      );
+      const isEmpty = !team.name;
+      let cls = "team-row";
+      if (isChampion)   cls += " champion";
+      else if (isAdvancing)  cls += " advancing";
+      else if (isDropping)   cls += " dropping";
+      else if (isEliminated) cls += " eliminated";
+      const emoji = isChampion ? "&#9819;" : "";
+      const placementLabel = placement !== 0 ? PLACEMENT_LABELS[placement] : "";
+      let inner = "";
+      if (!isGF) {
+        inner += `<span class="team-seed-group">`;
+        if (team.seed > 0) inner += `<span class="team-seed">#${team.seed}</span>`;
+        inner += `</span>`;
+      }
+      if (isGF && isDE && team.path) {
+        const badgeCls = team.path === "wb" ? "wb-badge" : "lb-badge";
+        inner += `<span class="path-badge ${badgeCls}">[${team.path.toUpperCase()}]</span>`;
+      }
+      inner += `<span class="team-emoji">${emoji}</span>`;
+      const hasRoster = Array.isArray(team.players) && team.players.length > 0;
+      let nameHtml = `<span class="team-name${isEmpty ? " empty" : ""}${hasRoster ? " has-roster" : ""}">`;
+      nameHtml += (team.name || "- TBD -");
+      if (hasRoster) {
+        nameHtml += `<span class="roster-tooltip"><span class="roster-tooltip-title">${escHtml(team.name)}</span>`;
+        for (const p of team.players) nameHtml += `<span class="roster-tooltip-player">&#9658; ${escHtml(p)}</span>`;
+        nameHtml += `</span>`;
+      }
+      nameHtml += `</span>`;
+      inner += nameHtml;
+      if (placementLabel) inner += `<span class="placement-badge${isChampion ? " champion-badge" : ""}">${placementLabel}</span>`;
+      return `<div class="${cls}">${inner}</div>`;
+    }
+
+    // ─── Pod renderer ─────────────────────────────────────────────────────────
+    function renderPod(pod, isGF, isDE, isLB, gfDeciding) {
+      const isLiveNow = !!pod.liveNow;
+      const isOnStream = !!pod.onStream && !pod.liveNow;
+      const podCls = ["match-pod", isGF ? "gf-pod" : "", isLB ? "lb-pod" : "", isLiveNow ? "live-now" : "", isOnStream ? "on-stream" : ""].filter(Boolean).join(" ");
+      const headerCls = ["pod-header", isGF ? "gf-header" : "", isLB ? "lb-header" : ""].filter(Boolean).join(" ");
+      const podSize = pod.teams.length;
+      let html = `<div class="${podCls}" data-pod-id="${pod.id}">`;
+      const streamBadge = isLiveNow
+        ? ` <span class="stream-live-badge">&#9679; LIVE</span>`
+        : isOnStream ? ` <span class="stream-live-badge" style="color:var(--cb-cyan)">&#9679;</span>` : "";
+      html += `<div class="${headerCls}">${pod.label}${streamBadge}</div>`;
+      html += pod.map
+        ? `<div class="map-plate"><span class="map-name">${escHtml(pod.map)}</span></div>`
+        : `<div class="map-plate"><span class="map-name" style="color:var(--cb-muted);opacity:0.7">MAP TBD</span></div>`;
+      for (const team of pod.teams) html += renderTeamRow(team, isGF, isDE, isLB, pod.hasNoLBDrop, podSize, gfDeciding);
+      html += `</div>`;
+      return html;
+    }
+
+    // ─── Bracket renderer ─────────────────────────────────────────────────────
+    function renderBracket(pods, mode, size, opts) {
+      const phases = groupPodsByPhase(pods, mode, size, opts);
+      const isDE = mode === "double";
+      const gfInfo = gfSeriesInfo(pods);
+      if (!isDE) {
+        let html = `<div class="bracket-container"><div class="bracket-inner">`;
+        phases.forEach((ph, i) => {
+          if (i > 0) html += `<div class="connector-spacer"></div>`;
+          html += `<div class="bracket-phase">`;
+          html += `<div class="phase-label">${ph.label}</div>`;
+          html += `<div class="pods-column">`;
+          for (const pod of ph.pods) html += renderPod(pod, pod.phase === "gf", false, false, pod.id === gfInfo.decidingId);
+          html += `</div></div>`;
+        });
+        html += `</div></div>`;
+        return html;
+      }
+      const wbPhases = phases.filter(ph => ph.bracket === "wb");
+      const lbPhases = phases.filter(ph => ph.bracket === "lb");
+      const gfPhases = phases.filter(ph => ph.bracket === "gf");
+      let html = `<div class="bracket-container"><div class="de-bracket-wrapper">`;
+      html += `<div class="de-row wb-row"><div class="de-row-label wb-row-label">WINNERS BRACKET</div><div class="de-row-phases">`;
+      wbPhases.forEach((ph, i) => {
+        if (i > 0) html += `<div class="connector-spacer"></div>`;
+        html += `<div class="bracket-phase"><div class="phase-label">${ph.label}</div><div class="pods-column">`;
+        for (const pod of ph.pods) html += renderPod(pod, false, true, false);
+        html += `</div></div>`;
+      });
+      html += `</div></div>`;
+      html += `<div class="de-zone-divider"></div>`;
+      html += `<div class="de-row lb-row"><div class="de-row-label lb-row-label">LOSERS BRACKET</div><div class="de-row-phases">`;
+      lbPhases.forEach((ph, i) => {
+        if (i > 0) html += `<div class="connector-spacer"></div>`;
+        html += `<div class="bracket-phase"><div class="phase-label lb-phase-label">${ph.label}</div><div class="pods-column">`;
+        for (const pod of ph.pods) html += renderPod(pod, false, true, true);
+        html += `</div></div>`;
+      });
+      html += `</div></div>`;
+      if (gfPhases.length > 0) {
+        html += `<div class="de-gf-column">`;
+        for (const ph of gfPhases) {
+          html += `<div class="phase-label gf-phase-label" style="padding-bottom:12px">${ph.label}</div>`;
+          html += `<div style="display:flex;flex-direction:column;gap:8px;align-items:center">`;
+          for (const pod of ph.pods) html += renderPod(pod, pod.phase === "gf", true, false, pod.id === gfInfo.decidingId);
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+      html += `</div></div>`;
+      return html;
+    }
+
+    // ─── Connector line system ─────────────────────────────────────────────
+    let _lastConnectorArgs = null;
+    function measureConnectors(pods, mode, size, opts) {
+      _lastConnectorArgs = { pods, mode, size, opts };
+      const container = document.querySelector(".bracket-container");
+      if (!container) return;
+      // Remove old SVG overlay
+      const old = container.querySelector(".connector-svg-overlay");
+      if (old) old.remove();
+      const containerRect = container.getBoundingClientRect();
+      const graph = applyFinalsBracket(getPhaseGraph(size, mode), opts);
+      const phaseById = new Map(graph.map(p => [p.id, p]));
+      const lines = [];
+      for (const pod of pods) {
+        const phase = phaseById.get(pod.phase);
+        if (!phase) continue;
+        const srcEl = container.querySelector(`[data-pod-id="${pod.id}"]`);
+        if (!srcEl) continue;
+        const srcRows = srcEl.querySelectorAll(".team-row");
+        const podSize = pod.teams.length;
+        const advanceCount = podSize / 2;
+        // Advance connectors
+        if (phase.advanceTo) {
+          const advancingTeams = pod.teams
+            .map((t, i) => ({ t, i }))
+            .filter(({ t }) => t.placement >= 1 && t.placement <= advanceCount && t.name)
+            .sort((a, b) => a.t.placement - b.t.placement);
+          for (const { t, i: srcRowIdx } of advancingTeams) {
+            const destPod = pods.find(p => p.phase === phase.advanceTo && p.teams.some(dt => dt.name === t.name));
+            if (!destPod) continue;
+            const dstEl = container.querySelector(`[data-pod-id="${destPod.id}"]`);
+            if (!dstEl) continue;
+            const dstRows = dstEl.querySelectorAll(".team-row");
+            const dstRowIdx = destPod.teams.findIndex(dt => dt.name === t.name);
+            const srcRow = srcRows[srcRowIdx];
+            const dstRow = dstRows[dstRowIdx];
+            if (!srcRow || !dstRow) continue;
+            const s = srcRow.getBoundingClientRect();
+            const d = dstRow.getBoundingClientRect();
+            lines.push({ x1: s.right - containerRect.left, y1: s.top + s.height/2 - containerRect.top,
+              x2: d.left - containerRect.left, x2R: d.right - containerRect.left, y2: d.top + d.height/2 - containerRect.top,
+              key: `${pod.id}-adv-${t.name}`, active: true, isDrop: false, channelX: 0 });
+          }
+          // Ghost lines when no advances yet
+          if (advancingTeams.length === 0) {
+            const destPhasePods = pods.filter(p => p.phase === phase.advanceTo);
+            for (let i = 0; i < Math.min(advanceCount, 2); i++) {
+              const destPod = destPhasePods[Math.floor(i/2)] || destPhasePods[0];
+              if (!destPod) continue;
+              const dstEl = container.querySelector(`[data-pod-id="${destPod.id}"]`);
+              if (!dstEl) continue;
+              const srcRow = srcRows[i];
+              const dstRows = dstEl.querySelectorAll(".team-row");
+              const dstRow = dstRows[i % destPod.teams.length];
+              if (!srcRow || !dstRow) continue;
+              const s = srcRow.getBoundingClientRect();
+              const d = dstRow.getBoundingClientRect();
+              lines.push({ x1: s.right - containerRect.left, y1: s.top + s.height/2 - containerRect.top,
+                x2: d.left - containerRect.left, x2R: d.right - containerRect.left, y2: d.top + d.height/2 - containerRect.top,
+                key: `${pod.id}-ghost-${i}`, active: false, isDrop: false, channelX: 0 });
+            }
+          }
+        }
+        // Drop connectors (DE WB only)
+        // Drop lines are intentionally NOT rendered on the spectator view:
+        // across the compressed live layout they cross over pods (the "strikethrough"
+        // look). Spectators only need the green advance lines for readability.
+        if (false && phase.dropTo && mode === "double" && !phase.hasNoLBDrop) {
+          const droppingTeams = pod.teams
+            .map((t, i) => ({ t, i }))
+            .filter(({ t }) => t.placement > advanceCount && t.placement <= podSize && t.name)
+            .sort((a, b) => a.t.placement - b.t.placement);
+          for (const { t, i: srcRowIdx } of droppingTeams) {
+            const destPod = pods.find(p => p.phase === phase.dropTo && p.teams.some(dt => dt.name === t.name));
+            if (!destPod) continue;
+            const dstEl = container.querySelector(`[data-pod-id="${destPod.id}"]`);
+            if (!dstEl) continue;
+            const dstRows = dstEl.querySelectorAll(".team-row");
+            const dstRowIdx = destPod.teams.findIndex(dt => dt.name === t.name);
+            const srcRow = srcRows[srcRowIdx];
+            const dstRow = dstRows[dstRowIdx];
+            if (!srcRow || !dstRow) continue;
+            const s = srcRow.getBoundingClientRect();
+            const d = dstRow.getBoundingClientRect();
+            lines.push({ x1: s.right - containerRect.left, y1: s.top + s.height/2 - containerRect.top,
+              x2: d.left - containerRect.left, x2R: d.right - containerRect.left, y2: d.top + d.height/2 - containerRect.top,
+              key: `${pod.id}-drop-${t.name}`, active: true, isDrop: true, channelX: 0 });
+          }
+          // Ghost drop lines
+          if (droppingTeams.length === 0) {
+            const dropCount = podSize / 2;
+            const destPhasePods = pods.filter(p => p.phase === phase.dropTo);
+            for (let i = 0; i < Math.min(dropCount, 2); i++) {
+              const destPod = destPhasePods[Math.floor(i/2)] || destPhasePods[0];
+              if (!destPod) continue;
+              const dstEl = container.querySelector(`[data-pod-id="${destPod.id}"]`);
+              if (!dstEl) continue;
+              const srcRow = srcRows[advanceCount + i];
+              const dstRows = dstEl.querySelectorAll(".team-row");
+              const dstRow = dstRows[i % destPod.teams.length];
+              if (!srcRow || !dstRow) continue;
+              const s = srcRow.getBoundingClientRect();
+              const d = dstRow.getBoundingClientRect();
+              lines.push({ x1: s.right - containerRect.left, y1: s.top + s.height/2 - containerRect.top,
+                x2: d.left - containerRect.left, x2R: d.right - containerRect.left, y2: d.top + d.height/2 - containerRect.top,
+                key: `${pod.id}-ghostdrop-${i}`, active: false, isDrop: true, channelX: 0 });
+            }
+          }
+        }
+      }
+      // Assign channelX corridors
+      const bySource = new Map();
+      for (const ln of lines) {
+        const srcKey = ln.key.split("-")[0] + "-" + (ln.key.split("-")[1] || "");
+        if (!bySource.has(srcKey)) bySource.set(srcKey, []);
+        bySource.get(srcKey).push(ln);
+      }
+      for (const group of bySource.values()) {
+        group.forEach((ln, gi) => {
+          const gap = ln.x2 - ln.x1;
+          if (gap < 12) {
+            // Same-column / stacked (finals): corridor sits RIGHT of both pods and
+            // the line ENTERS THE DEST FROM ITS RIGHT EDGE. Entering at the left
+            // edge would drag the horizontal across the pod (strikethrough bug).
+            ln.x2 = ln.x2R;
+            ln.channelX = Math.max(ln.x1, ln.x2R) + 12 + gi * 5;
+          } else {
+            // Normal left-to-right: corridor must stay INSIDE the gutter
+            // (live gutter is only 20px, so no fixed 24px minimum).
+            const base = ln.x1 + Math.max(8, Math.min(gap * 0.4, gap - 8));
+            ln.channelX = Math.min(base + gi * 5, ln.x2 - 6);
+          }
+        });
+      }
+      // Build SVG
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.classList.add("connector-svg-overlay");
+      svg.setAttribute("style", "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible");
+      for (const c of lines) {
+        const color = c.isDrop ? (c.active ? "#ff8a3d" : "#2b1c10") : (c.active ? "#28d17c" : "#20242f");
+        const sw = c.active ? 2 : 1;
+        const cx = Math.max(c.x1 + 8, c.channelX);
+        const dirY = c.y2 >= c.y1 ? 1 : -1;
+        const dirIn = c.x2 >= cx ? 1 : -1;
+        const r = Math.max(0, Math.min(8, Math.abs(c.y2 - c.y1) / 2, Math.abs(cx - c.x1), Math.abs(c.x2 - cx)));
+        const dPath = r > 1
+          ? `M ${c.x1} ${c.y1} L ${cx-r} ${c.y1} Q ${cx} ${c.y1} ${cx} ${c.y1+dirY*r} L ${cx} ${c.y2-dirY*r} Q ${cx} ${c.y2} ${cx+dirIn*r} ${c.y2} L ${c.x2} ${c.y2}`
+          : `M ${c.x1} ${c.y1} L ${cx} ${c.y1} L ${cx} ${c.y2} L ${c.x2} ${c.y2}`;
+        const path = document.createElementNS(svgNS, "path");
+        path.setAttribute("d", dPath);
+        path.setAttribute("stroke", color);
+        path.setAttribute("stroke-width", sw);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linejoin", "round");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("opacity", c.active ? "1" : "0.4");
+        if (c.active) path.style.filter = c.isDrop ? "drop-shadow(0 0 3px rgba(255,138,61,0.4))" : "drop-shadow(0 0 3px rgba(40,209,124,0.4))";
+        if (c.isDrop) path.setAttribute("stroke-dasharray", "4,5");
+        svg.appendChild(path);
+      }
+      container.style.position = "relative";
+      container.insertBefore(svg, container.firstChild);
+    }
+    window.addEventListener("resize", () => {
+      if (_lastConnectorArgs) {
+        const { pods, mode, size, opts } = _lastConnectorArgs;
+        measureConnectors(pods, mode, size, opts);
+      }
+    });
+    // ─── Compact toggle ───────────────────────────────────────────────────────
+    function toggleCompact() {
+      _compactActive = !_compactActive;
+      document.body.classList.toggle("compact", _compactActive);
+      const btn = document.getElementById("compactBtn");
+      if (btn) {
+        btn.classList.toggle("active", _compactActive);
+        btn.textContent = _compactActive ? "Normal" : "Compact";
+      }
+    }
+
+    // ─── Timestamp updater ────────────────────────────────────────────────────
+    setInterval(updateTimestamp, 5000);
+
+    // ─── Start ────────────────────────────────────────────────────────────────
+    init();
+  </script>
+</body>
+</html>
