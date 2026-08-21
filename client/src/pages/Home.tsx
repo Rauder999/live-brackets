@@ -40,8 +40,8 @@ const MAP_NAMES = [
 
 // ─── Persistence helpers ──────────────────────────────────────────────────────
 
-const AUTOSAVE_KEY = "cb_autosave";
-const SAVES_KEY = "cb_saves";
+const AUTOSAVE_KEY = "lb_autosave";
+const SAVES_KEY = "lb_saves";
 
 interface SavedTournament {
   id: string;
@@ -352,9 +352,9 @@ export default function Home() {
   // adminToken now holds the auth credential sent to the worker: either the
   // super-admin master password OR a signed account token (organizer). Persisted
   // to localStorage so organizers stay signed in across restarts.
-  const [adminToken, setAdminToken] = useState<string>(() => localStorage.getItem("cb_auth_token") || sessionStorage.getItem("cb_admin_token") || "");
-  const [authKind, setAuthKind] = useState<string>(() => localStorage.getItem("cb_auth_kind") || "");
-  const [authName, setAuthName] = useState<string>(() => localStorage.getItem("cb_auth_name") || "");
+  const [adminToken, setAdminToken] = useState<string>(() => localStorage.getItem("lb_auth_token") || sessionStorage.getItem("lb_admin_token") || "");
+  const [authKind, setAuthKind] = useState<string>(() => localStorage.getItem("lb_auth_kind") || "");
+  const [authName, setAuthName] = useState<string>(() => localStorage.getItem("lb_auth_name") || "");
   const [showTokenDialog, setShowTokenDialog] = useState(false);
   const [tokenInput, setTokenInput] = useState("");
   const [tokenError, setTokenError] = useState("");
@@ -367,17 +367,17 @@ export default function Home() {
   const [fRegPass, setFRegPass] = useState("");
   const applyAuth = useCallback((token: string, kind: string, name: string) => {
     setAdminToken(token); setAuthKind(kind); setAuthName(name);
-    localStorage.setItem("cb_auth_token", token);
-    localStorage.setItem("cb_auth_kind", kind);
-    localStorage.setItem("cb_auth_name", name);
-    sessionStorage.setItem("cb_admin_token", token);
+    localStorage.setItem("lb_auth_token", token);
+    localStorage.setItem("lb_auth_kind", kind);
+    localStorage.setItem("lb_auth_name", name);
+    sessionStorage.setItem("lb_admin_token", token);
   }, []);
   const logout = useCallback(() => {
     setAdminToken(""); setAuthKind(""); setAuthName("");
-    localStorage.removeItem("cb_auth_token");
-    localStorage.removeItem("cb_auth_kind");
-    localStorage.removeItem("cb_auth_name");
-    sessionStorage.removeItem("cb_admin_token");
+    localStorage.removeItem("lb_auth_token");
+    localStorage.removeItem("lb_auth_kind");
+    localStorage.removeItem("lb_auth_name");
+    sessionStorage.removeItem("lb_admin_token");
     toast("Signed out", { duration: 1500 });
   }, []);
   const pendingAction = useRef<"publish" | "unpublish" | "generate-session" | "delete-session" | null>(null);
@@ -411,12 +411,12 @@ export default function Home() {
   // Session
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
-  const [editorName, setEditorName] = useState(() => localStorage.getItem("cb_editor") || "");
+  const [editorName, setEditorName] = useState(() => localStorage.getItem("lb_editor") || "");
   const [lastEditor, setLastEditor] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "synced" | "conflict">("idle");
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [showSessionPanel, setShowSessionPanel] = useState(false);
-  const [tournamentName, setTournamentName] = useState(() => sessionStorage.getItem("cb_session_name") || "");
+  const [tournamentName, setTournamentName] = useState(() => sessionStorage.getItem("lb_session_name") || "");
   const tournamentNameRef = useRef(tournamentName);
   const sessionPutInFlight = useRef(false);
   const sessionPollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -583,7 +583,7 @@ export default function Home() {
         setTimeout(() => setPublishStatus("idle"), 2000);
       } else {
         setAdminToken("");
-        sessionStorage.removeItem("cb_admin_token");
+        sessionStorage.removeItem("lb_admin_token");
         setPublishStatus("error");
         setTimeout(() => setPublishStatus("idle"), 2000);
       }
@@ -724,6 +724,10 @@ export default function Home() {
         setTimeout(() => setSyncStatus("idle"), 2000);
       } else {
         setSyncStatus("idle");
+        // A silent 401 here once made the UI show a session code that never
+        // reached the server. Say it out loud.
+        if (res.status === 401) toast.error("Your sign-in is not valid for this site — sign out and sign in again");
+        else toast.error(`Could not save the session (HTTP ${res.status})`);
       }
     } catch {
       setSyncStatus("idle");
@@ -818,8 +822,8 @@ export default function Home() {
     sessionVersionRef.current = 0;
     myVersionRef.current = 0;
     setSessionVersion(0);
-    sessionStorage.setItem("cb_session_code", code);
-    sessionStorage.setItem("cb_session_editor", editorNameRef.current || "Operator");
+    sessionStorage.setItem("lb_session_code", code);
+    sessionStorage.setItem("lb_session_editor", editorNameRef.current || "Operator");
     doPutSession(code, buildSessionState(), adminToken);
     toast.success(`Session ${code} created!`, { duration: 3000 });
   }, [adminToken, buildSessionState, doPutSession]);
@@ -841,8 +845,8 @@ export default function Home() {
         const s = JSON.parse(data.state);
         if (s.pods && s.pods.length > 0) setScreen("bracket");
       } catch { /* keep current screen */ }
-      sessionStorage.setItem("cb_session_code", code);
-      sessionStorage.setItem("cb_session_editor", editorNameRef.current || "Operator");
+      sessionStorage.setItem("lb_session_code", code);
+      sessionStorage.setItem("lb_session_editor", editorNameRef.current || "Operator");
       setShowOngoing(false);
       toast.success(`Joined session ${code}`);
       setJoinCodeInput("");
@@ -859,8 +863,8 @@ export default function Home() {
     sessionVersionRef.current = 0;
     myVersionRef.current = 0;
     setSessionVersion(0);
-    sessionStorage.setItem("cb_session_code", code);
-    sessionStorage.setItem("cb_session_editor", editorNameRef.current || "Operator");
+    sessionStorage.setItem("lb_session_code", code);
+    sessionStorage.setItem("lb_session_editor", editorNameRef.current || "Operator");
     doPutSession(code, stateStr, token);
     toast.success(`Session ${code} created`, { duration: 2500 });
   }, [doPutSession]);
@@ -913,8 +917,8 @@ export default function Home() {
       if (sessionCodeRef.current === code) {
         setSessionCode(null);
         sessionCodeRef.current = null;
-        sessionStorage.removeItem("cb_session_code");
-        sessionStorage.removeItem("cb_session_editor");
+        sessionStorage.removeItem("lb_session_code");
+        sessionStorage.removeItem("lb_session_editor");
       }
       toast.success(`Deleted ${code}`);
     } catch { toast.error("Failed to delete session"); }
@@ -938,8 +942,8 @@ export default function Home() {
     sessionCodeRef.current = null;
     setSyncStatus("idle");
     setLastEditor(null);
-    sessionStorage.removeItem("cb_session_code");
-    sessionStorage.removeItem("cb_session_editor");
+    sessionStorage.removeItem("lb_session_code");
+    sessionStorage.removeItem("lb_session_editor");
     toast("Left session", { duration: 1500 });
   }, []);
   // Co-host link on mount: ?cohost=<token>&session=<code> grants write access to
@@ -959,14 +963,14 @@ export default function Home() {
   // Auto-rejoin session on mount if sessionStorage has a code
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("cohost")) return; // handled above
-    const savedCode = sessionStorage.getItem("cb_session_code");
+    const savedCode = sessionStorage.getItem("lb_session_code");
     if (!savedCode) return;
-    const savedEditor = sessionStorage.getItem("cb_session_editor");
+    const savedEditor = sessionStorage.getItem("lb_session_editor");
     if (savedEditor) setEditorName(savedEditor);
     fetch(`${WORKER_URL}/session/${savedCode}`)
       .then((r) => r.json())
       .then((data: { ok: boolean; state: string; version: number; lastEditor: string }) => {
-        if (!data.ok) { sessionStorage.removeItem("cb_session_code"); return; }
+        if (!data.ok) { sessionStorage.removeItem("lb_session_code"); return; }
         adoptServerState(data.state, data.version, data.lastEditor);
         myVersionRef.current = data.version;
         setSessionCode(savedCode);
@@ -974,7 +978,7 @@ export default function Home() {
         try { const s = JSON.parse(data.state); if (s.pods && s.pods.length > 0) setScreen("bracket"); } catch { /* keep */ }
         toast.success(`Rejoined session ${savedCode}`, { duration: 2000 });
       })
-      .catch(() => sessionStorage.removeItem("cb_session_code"));
+      .catch(() => sessionStorage.removeItem("lb_session_code"));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1758,9 +1762,9 @@ export default function Home() {
             <div className="step-head"><span className="step-num">05</span><span className="step-title">Details</span></div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 380 }}>
               <div style={{ fontSize: 11.5, color: "var(--cb-muted)" }}>Tournament name (shown to spectators)</div>
-              <input className="team-input" type="text" value={tournamentName} onChange={(e) => { setTournamentName(e.target.value); sessionStorage.setItem("cb_session_name", e.target.value); }} placeholder="e.g. CODE Big League..." />
+              <input className="team-input" type="text" value={tournamentName} onChange={(e) => { setTournamentName(e.target.value); sessionStorage.setItem("lb_session_name", e.target.value); }} placeholder="e.g. CODE Big League..." />
               <div style={{ fontSize: 11.5, color: "var(--cb-muted)", marginTop: 4 }}>Your name (shown to co-editors)</div>
-              <input className="team-input" type="text" value={editorName} onChange={(e) => { setEditorName(e.target.value); localStorage.setItem("cb_editor", e.target.value); }} placeholder="Your name..." />
+              <input className="team-input" type="text" value={editorName} onChange={(e) => { setEditorName(e.target.value); localStorage.setItem("lb_editor", e.target.value); }} placeholder="Your name..." />
             </div>
           </div>
 
