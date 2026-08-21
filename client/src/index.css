@@ -43,17 +43,17 @@
   --radius: 2px;
 
   /* ── Codebreakers "Terminal Violet" tokens ─────────────────────────── */
-  --cb-bg:           #08090c;
-  --cb-panel:        #0d0f14;
-  --cb-panel2:       #12151d;
-  --cb-panel3:       #171b26;
-  --cb-border:       #1e222d;
-  --cb-border2:      #2b3142;
-  --cb-text:         #e6e9f2;
-  --cb-muted:        #7f8698;
-  --cb-silver:       #aab1c5;
-  --cb-purple:       #7c5cff;   /* brand accent */
-  --cb-purple2:      #a48fff;   /* accent hover / text-on-dark accent */
+  --cb-bg:           #0d0710;
+  --cb-panel:        #120a17;
+  --cb-panel2:       #180e20;
+  --cb-panel3:       #1d1226;
+  --cb-border:       #301a38;
+  --cb-border2:      #452a50;
+  --cb-text:         #f2e9f2;
+  --cb-muted:        #948096;
+  --cb-silver:       #c3aec0;
+  --cb-purple:       #ff2e97;   /* brand accent */
+  --cb-purple2:      #ff7cc0;   /* accent hover / text-on-dark accent */
   --cb-green:        #28d17c;   /* ADVANCE */
   --cb-red:          #ff4d5e;   /* LIVE */
   --cb-orange:       #ff8a3d;   /* DROP -> losers bracket */
@@ -74,25 +74,25 @@
   --cb-t-state: 300ms;
 
   /* Semantic mappings (shadcn) */
-  --background:      #08090c;
-  --foreground:      #e6e9f2;
-  --card:            #0d0f14;
-  --card-foreground: #e6e9f2;
-  --popover:         #0d0f14;
-  --popover-foreground: #e6e9f2;
-  --primary:         #7c5cff;
-  --primary-foreground: #e6e9f2;
-  --secondary:       #12151d;
-  --secondary-foreground: #aab1c5;
-  --muted:           #12151d;
-  --muted-foreground: #7f8698;
-  --accent:          #7c5cff;
-  --accent-foreground: #e6e9f2;
+  --background:      #0d0710;
+  --foreground:      #f2e9f2;
+  --card:            #120a17;
+  --card-foreground: #f2e9f2;
+  --popover:         #120a17;
+  --popover-foreground: #f2e9f2;
+  --primary:         #ff2e97;
+  --primary-foreground: #f2e9f2;
+  --secondary:       #180e20;
+  --secondary-foreground: #c3aec0;
+  --muted:           #180e20;
+  --muted-foreground: #948096;
+  --accent:          #ff2e97;
+  --accent-foreground: #f2e9f2;
   --destructive:     #ff4d5e;
-  --destructive-foreground: #e6e9f2;
-  --border:          #1e222d;
-  --input:           #12151d;
-  --ring:            #7c5cff;
+  --destructive-foreground: #f2e9f2;
+  --border:          #301a38;
+  --input:           #180e20;
+  --ring:            #ff2e97;
 }
 
 @layer base {
@@ -120,7 +120,7 @@
     min-width: 1440px;
   }
 
-  ::selection { background: rgba(124,92,255,0.35); }
+  ::selection { background: rgba(255,46,151,0.35); }
 
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {
@@ -189,7 +189,7 @@
 /* Admin pods are clickable — lift on hover */
 .match-pod:hover {
   border-color: var(--cb-purple);
-  box-shadow: inset 0 1px 0 rgba(164,143,255,0.2), 0 12px 34px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,92,255,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,124,192,0.2), 0 12px 34px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,46,151,0.28);
   transform: translateY(-2px);
 }
 
@@ -418,7 +418,7 @@
   transform: translateX(-50%);
   width: 600px;
   height: 200px;
-  background: radial-gradient(ellipse at center, rgba(124,92,255,0.07) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(255,46,151,0.07) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -592,7 +592,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 
 .team-input:focus {
   border-color: var(--cb-purple);
-  box-shadow: 0 0 0 3px rgba(124,92,255,0.14);
+  box-shadow: 0 0 0 3px rgba(255,46,151,0.14);
 }
 
 .team-input::placeholder {
@@ -718,8 +718,8 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 
 .mode-btn.active {
   border-color: var(--cb-purple);
-  background: linear-gradient(180deg, rgba(124,92,255,0.10), rgba(124,92,255,0.03));
-  box-shadow: inset 0 1px 0 rgba(164,143,255,0.25);
+  background: linear-gradient(180deg, rgba(255,46,151,0.10), rgba(255,46,151,0.03));
+  box-shadow: inset 0 1px 0 rgba(255,124,192,0.25);
 }
 .mode-btn.active::after {
   content: "\2713";
@@ -734,7 +734,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 /* DE keeps the same violet active state (orange is reserved for drop semantics) */
 .mode-btn.active.de {
   border-color: var(--cb-purple);
-  background: linear-gradient(180deg, rgba(124,92,255,0.10), rgba(124,92,255,0.03));
+  background: linear-gradient(180deg, rgba(255,46,151,0.10), rgba(255,46,151,0.03));
 }
 
 .mode-btn:active {
@@ -789,7 +789,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
   text-transform: uppercase;
   color: var(--cb-purple2);
   padding: 6px 16px 6px;
-  border-bottom: 1px solid rgba(124,92,255,0.25);
+  border-bottom: 1px solid rgba(255,46,151,0.25);
   margin-bottom: 0;
 }
 
@@ -813,7 +813,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
   grid-column: 1 / -1;
   grid-row: 2;
   height: 1px;
-  background: linear-gradient(to right, rgba(124,92,255,0.3), rgba(255,138,61,0.3));
+  background: linear-gradient(to right, rgba(255,46,151,0.3), rgba(255,138,61,0.3));
   margin: 8px 0;
 }
 
@@ -856,7 +856,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
   text-transform: uppercase;
   color: var(--cb-purple2);
   padding: 4px 0 8px;
-  border-bottom: 1px solid rgba(124,92,255,0.2);
+  border-bottom: 1px solid rgba(255,46,151,0.2);
   margin-bottom: 8px;
 }
 
@@ -873,7 +873,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 }
 
 .wb-zone {
-  border-right: 1px solid rgba(124,92,255,0.15);
+  border-right: 1px solid rgba(255,46,151,0.15);
   padding-right: 0;
   margin-right: 0;
 }
@@ -939,8 +939,8 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 
 .wb-badge {
   color: var(--cb-purple2);
-  border-color: rgba(124,92,255,0.4);
-  background: rgba(124,92,255,0.08);
+  border-color: rgba(255,46,151,0.4);
+  background: rgba(255,46,151,0.08);
 }
 
 .lb-badge {
@@ -1058,7 +1058,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 .cb-btn.primary:hover {
   background: var(--cb-purple2);
   color: #0b0716;
-  box-shadow: 0 0 24px rgba(124,92,255,0.35);
+  box-shadow: 0 0 24px rgba(255,46,151,0.35);
 }
 
 .cb-btn.ghost {
@@ -1068,8 +1068,8 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 }
 .cb-btn.ghost:hover { color: var(--cb-purple2); }
 
-.cb-btn.accent  { border-color: rgba(124,92,255,0.55); color: var(--cb-purple2); background: rgba(124,92,255,0.07); }
-.cb-btn.accent:hover  { border-color: var(--cb-purple); color: var(--cb-text); background: rgba(124,92,255,0.14); }
+.cb-btn.accent  { border-color: rgba(255,46,151,0.55); color: var(--cb-purple2); background: rgba(255,46,151,0.07); }
+.cb-btn.accent:hover  { border-color: var(--cb-purple); color: var(--cb-text); background: rgba(255,46,151,0.14); }
 
 .cb-btn.success { border-color: rgba(40,209,124,0.5); color: var(--cb-green); background: rgba(40,209,124,0.06); }
 .cb-btn.success:hover { border-color: var(--cb-green); color: var(--cb-text); background: rgba(40,209,124,0.13); }
@@ -1100,7 +1100,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 .cb-btn.generate:hover {
   background: var(--cb-purple2);
   color: #0b0716;
-  box-shadow: 0 0 28px rgba(124,92,255,0.35);
+  box-shadow: 0 0 28px rgba(255,46,151,0.35);
 }
 
 /* ─── Chips (session codes, statuses) ─── */
@@ -1138,7 +1138,7 @@ details.adv .adv-inner { padding: 4px 16px 14px; display: flex; flex-direction: 
 .cb-modal {
   background: var(--cb-panel);
   border: 1px solid var(--cb-border2);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(124,92,255,0.18);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,46,151,0.18);
   display: flex;
   flex-direction: column;
   animation: modalIn 200ms var(--cb-ease) both;
@@ -1239,7 +1239,7 @@ body.screenshot-mode .bracket-container {
   cursor: default;
   text-decoration-line: underline;
   text-decoration-style: dotted;
-  text-decoration-color: rgba(164,143,255,0.45);
+  text-decoration-color: rgba(255,124,192,0.45);
   text-underline-offset: 3px;
   transition: color var(--cb-t-hover) ease;
 }
@@ -1252,8 +1252,8 @@ body.screenshot-mode .bracket-container {
   min-width: 160px;
   max-width: 240px;
   background: var(--cb-panel2) !important;
-  border: 1px solid rgba(124,92,255,0.6) !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,92,255,0.15) !important;
+  border: 1px solid rgba(255,46,151,0.6) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,46,151,0.15) !important;
   padding: 8px 12px !important;
   display: flex;
   flex-direction: column;
@@ -1272,8 +1272,8 @@ body.screenshot-mode .bracket-container {
   min-width: 160px;
   max-width: 240px;
   background: var(--cb-panel2);
-  border: 1px solid rgba(124,92,255,0.6);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,92,255,0.15);
+  border: 1px solid rgba(255,46,151,0.6);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,46,151,0.15);
   padding: 8px 12px;
   flex-direction: column;
   gap: 4px;
@@ -1287,7 +1287,7 @@ body.screenshot-mode .bracket-container {
   top: 100%;
   left: 14px;
   border: 5px solid transparent;
-  border-top-color: rgba(124,92,255,0.6);
+  border-top-color: rgba(255,46,151,0.6);
 }
 
 .team-name.has-roster:hover .roster-tooltip {
@@ -1302,7 +1302,7 @@ body.screenshot-mode .bracket-container {
   text-transform: uppercase;
   color: var(--cb-purple2);
   margin-bottom: 4px;
-  border-bottom: 1px solid rgba(124,92,255,0.3);
+  border-bottom: 1px solid rgba(255,46,151,0.3);
   padding-bottom: 4px;
 }
 
@@ -1330,8 +1330,8 @@ body.screenshot-mode .bracket-container {
 }
 
 .players-input:focus {
-  border-color: rgba(124,92,255,0.6) !important;
-  background: rgba(124,92,255,0.04) !important;
+  border-color: rgba(255,46,151,0.6) !important;
+  background: rgba(255,46,151,0.04) !important;
 }
 
 /* ─── Map Plate ─────────────────────────────────────────────────────────────── */
@@ -1341,7 +1341,7 @@ body.screenshot-mode .bracket-container {
   justify-content: center;
   gap: 6px;
   padding: 4px 10px;
-  background: rgba(124,92,255,0.045);
+  background: rgba(255,46,151,0.045);
   border-bottom: 1px solid var(--cb-border);
   cursor: pointer;
   transition: background 120ms;
@@ -1357,7 +1357,7 @@ body.screenshot-mode .bracket-container {
   opacity: 0.7;
 }
 .map-plate:hover {
-  background: rgba(124,92,255,0.12);
+  background: rgba(255,46,151,0.12);
 }
 .map-name {
   font-family: var(--cb-font-mono);
@@ -1424,13 +1424,13 @@ body.screenshot-mode .bracket-container {
 .format-toggle-btn.active {
   border-color: var(--cb-purple);
   color: var(--cb-purple2);
-  background: rgba(124,92,255,0.12);
-  box-shadow: inset 0 0 0 1px rgba(124,92,255,0.35);
+  background: rgba(255,46,151,0.12);
+  box-shadow: inset 0 0 0 1px rgba(255,46,151,0.35);
 }
 .format-toggle-btn.active.global {
-  border-color: rgba(124,92,255,0.55);
+  border-color: rgba(255,46,151,0.55);
   color: var(--cb-purple2);
-  background: rgba(124,92,255,0.08);
+  background: rgba(255,46,151,0.08);
   box-shadow: none;
 }
 .format-toggle-btn.small {

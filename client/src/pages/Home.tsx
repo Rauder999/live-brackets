@@ -236,7 +236,7 @@ function BracketPreview({ size, mode, opts, config }: { size: Size; mode: Tourna
     if (p.advanceTo && pos[p.advanceTo]) adv.push([p.id, p.advanceTo]);
     if (mode === "double" && p.dropTo && !p.hasNoLBDrop && pos[p.dropTo]) drop.push([p.id, p.dropTo]);
   }
-  const strokeFor = (b: string) => b === "gf" ? "#e8b64a" : b === "lb" ? "#ff8a3d" : "#7c5cff";
+  const strokeFor = (b: string) => b === "gf" ? "#e8b64a" : b === "lb" ? "#ff8a3d" : "#ff2e97";
 
   // Hover: light up the hovered node and the nodes its teams flow into.
   const hoverPhase = hover ? graph.find((p) => p.id === hover) : null;
@@ -250,7 +250,7 @@ function BracketPreview({ size, mode, opts, config }: { size: Size; mode: Tourna
   return (
     <div>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%" style={{ display: "block" }} fontFamily="'IBM Plex Mono', monospace">
-        <text x={marginX} y={topY - 14} fill="#a48fff" fontSize={9} letterSpacing={2}>WINNERS BRACKET → FINALS</text>
+        <text x={marginX} y={topY - 14} fill="#ff7cc0" fontSize={9} letterSpacing={2}>WINNERS BRACKET → FINALS</text>
         {bot.length > 0 && <text x={marginX} y={botY - 14} fill="#ff8a3d" fontSize={9} letterSpacing={2}>LOSERS BRACKET</text>}
         {adv.map(([a, b], i) => {
           const s = pos[a], t = pos[b];
@@ -283,7 +283,7 @@ function BracketPreview({ size, mode, opts, config }: { size: Size; mode: Tourna
                 opacity={dim ? 0.35 : 1}
                 style={{ filter: hover === p.id ? `drop-shadow(0 0 6px ${c}aa)` : undefined, transition: "all 120ms" }} />
               <text x={n.cx} y={n.y + 17} textAnchor="middle" fill="#dfe3ef" fontSize={8} opacity={dim ? 0.4 : 1}>{shortLabel(p.label)}</text>
-              <text x={n.cx} y={n.y + 33} textAnchor="middle" fill={c === "#7c5cff" ? "#a48fff" : c} fontSize={11} fontWeight={600} opacity={dim ? 0.4 : 1}>{pcOf(p)}×{psOf(p)}</text>
+              <text x={n.cx} y={n.y + 33} textAnchor="middle" fill={c === "#ff2e97" ? "#ff7cc0" : c} fontSize={11} fontWeight={600} opacity={dim ? 0.4 : 1}>{pcOf(p)}×{psOf(p)}</text>
             </g>
           );
         })}
@@ -1190,7 +1190,7 @@ export default function Home() {
     if (!el) { toast.error("Bracket not found"); return; }
     toast("Generating PNG...");
     try {
-      const canvas = await html2canvas(el, { backgroundColor: "#08090c", scale: 2, useCORS: true, logging: false });
+      const canvas = await html2canvas(el, { backgroundColor: "#0d0710", scale: 2, useCORS: true, logging: false });
       const link = document.createElement("a");
       link.download = "live-brackets.png";
       link.href = canvas.toDataURL("image/png");
@@ -1497,13 +1497,13 @@ export default function Home() {
           </div>
           {/* Live bracket preview — a proper sidebar card, updates as you change format */}
           {previewWide && (
-            <div style={{ position: "fixed", top: 72, right: 24, width: 440, maxHeight: "84vh", overflowY: "auto", zIndex: 500, background: "linear-gradient(180deg, rgba(19,21,29,0.98), rgba(13,15,20,0.98))", border: "1px solid var(--cb-border2)", boxShadow: "0 12px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(124,92,255,0.18)" }}>
+            <div style={{ position: "fixed", top: 72, right: 24, width: 440, maxHeight: "84vh", overflowY: "auto", zIndex: 500, background: "linear-gradient(180deg, rgba(19,21,29,0.98), rgba(13,15,20,0.98))", border: "1px solid var(--cb-border2)", boxShadow: "0 12px 44px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,46,151,0.18)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px 10px", borderBottom: "1px solid var(--cb-border)" }}>
                 <div>
                   <div style={{ fontFamily: "var(--cb-font-display)", fontSize: 13, fontWeight: 700, letterSpacing: "0.2em", color: "var(--cb-purple2)", textTransform: "uppercase" }}>Live Preview</div>
                   <div style={{ fontFamily: "var(--cb-font-mono)", fontSize: 10, color: "var(--cb-muted)", marginTop: 3 }}>{tournamentSize} teams · {tournamentMode === "double" ? "Double Elimination" : "Single Elimination"}</div>
                 </div>
-                <span className="cb-chip" style={{ borderColor: "rgba(124,92,255,0.4)", color: "var(--cb-purple2)" }}>{globalFormat === 4 ? "CASH-OUT" : "FINAL RND"}</span>
+                <span className="cb-chip" style={{ borderColor: "rgba(255,46,151,0.4)", color: "var(--cb-purple2)" }}>{globalFormat === 4 ? "CASH-OUT" : "FINAL RND"}</span>
               </div>
               <div style={{ padding: "16px 18px 18px" }}>
                 <BracketPreview size={tournamentSize} mode={tournamentMode} opts={engineOpts} config={resolveConfig(tournamentSize, tournamentMode, globalFormat, formatConfig, engineOpts)} />
@@ -1933,7 +1933,7 @@ export default function Home() {
                       padding: "12px 20px",
                       borderBottom: "1px solid var(--cb-border)",
                       cursor: "pointer",
-                      background: isSelected ? "rgba(124,92,255,0.12)" : "transparent",
+                      background: isSelected ? "rgba(255,46,151,0.12)" : "transparent",
                       borderLeft: isSelected ? "2px solid var(--cb-purple)" : "2px solid transparent",
                       display: "flex", alignItems: "center", gap: 10,
                       transition: "background 0.1s",
@@ -2038,7 +2038,7 @@ export default function Home() {
                 <div style={{ padding: 24, textAlign: "center", color: "var(--cb-muted)", fontSize: 13 }}>{ongoingLoading ? "Loading..." : "No active tournaments"}</div>
               )}
               {ongoingSessions.map((s) => (
-                <div key={s.code} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderBottom: "1px solid var(--cb-border)", background: s.code === sessionCode ? "rgba(124,92,255,0.10)" : undefined }}>
+                <div key={s.code} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderBottom: "1px solid var(--cb-border)", background: s.code === sessionCode ? "rgba(255,46,151,0.10)" : undefined }}>
                   <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => joinByCode(s.code)}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontFamily: "var(--cb-font-display)", fontSize: 14, fontWeight: 700, color: "var(--cb-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name || "Untitled"}</span>
@@ -2079,7 +2079,7 @@ export default function Home() {
           {adminToken && authKind !== "cohost" && <button className="cb-btn" style={{ borderColor: "var(--cb-gold)", color: "var(--cb-gold)" }} onClick={() => setShowArchiveConfirm(true)}>Archive</button>}
           {/* Session chip */}
           {sessionCode && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(124,92,255,0.08)", border: "1px solid rgba(124,92,255,0.5)", padding: "4px 10px", fontSize: 11, letterSpacing: "0.08em" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,46,151,0.08)", border: "1px solid rgba(255,46,151,0.5)", padding: "4px 10px", fontSize: 11, letterSpacing: "0.08em" }}>
               <span style={{
                 width: 7, height: 7, borderRadius: "50%", display: "inline-block", flexShrink: 0,
                 background: syncStatus === "synced" ? "var(--cb-green)" : syncStatus === "syncing" ? "var(--cb-gold)" : syncStatus === "conflict" ? "var(--cb-red)" : "var(--cb-border2)",
