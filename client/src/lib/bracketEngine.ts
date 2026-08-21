@@ -229,8 +229,9 @@ export function buildInitialPods(
           bracket: phase.bracket,
           teams,
           hasNoLBDrop: phase.hasNoLBDrop,
-          // No pre-assigned map: the Discord ban phase (or the admin's map
-          // picker) decides it. Renderers show "MAP TBD" until then.
+          // LiveBrackets has no Discord ban phase: every match gets a random
+          // map up front; the organizer can change it with the map picker.
+          map: pickMap(maps, rng),
         });
       }
     } else {
@@ -242,6 +243,7 @@ export function buildInitialPods(
           bracket: phase.bracket,
           teams: emptySlots(podSize),
           hasNoLBDrop: phase.hasNoLBDrop,
+          map: pickMap(maps, rng),
         });
       }
     }
@@ -250,6 +252,16 @@ export function buildInitialPods(
   return pods;
 }
 
+
+const DEFAULT_MAPS = [
+  "Bernal", "Fangwai City", "Fortune Stadium", "Galaxy Estates",
+  "Las Vegas Stadium", "Monaco", "Nozomi/Citadel", "Skyway Stadium",
+  "Sys$Horizon",
+];
+function pickMap(maps: string[] | undefined, rng: () => number): string | undefined {
+  const pool = maps && maps.length ? maps : DEFAULT_MAPS;
+  return pool[Math.floor(rng() * pool.length)];
+}
 
 // ─── Snake layout (stable index -> slot mapping) ──────────────────────────────
 // Returns array where layout[globalIndex] = { pod, pos }. Based on TOTAL count,
@@ -416,7 +428,9 @@ export function propagate(
           // tells the finalists to self-host a lobby mid-series. liveNow is
           // not inherited - the observer flips it per broadcast.
           const prev = podMap.get(`gf-${i - 1}`) ?? g0;
-          g = { id, label: `GAME ${i + 1}`, phase: "gf", bracket: "gf", teams: [], onStream: prev.onStream };
+          const usedMaps = new Set(gfGames.map((gm) => gm.map).filter(Boolean) as string[]);
+          const fresh = DEFAULT_MAPS.filter((m) => !usedMaps.has(m));
+          g = { id, label: `GAME ${i + 1}`, phase: "gf", bracket: "gf", teams: [], onStream: prev.onStream, map: pickMap(fresh.length ? fresh : undefined, Math.random) };
           podMap.set(id, g);
         }
         g.teams = g0.teams.map((src, si) => {
